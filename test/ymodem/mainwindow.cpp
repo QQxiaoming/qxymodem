@@ -28,7 +28,7 @@ void MainWindow::on_toolButton_Send_clicked()
 
 void MainWindow::on_toolButton_recv_clicked()
 {
-    QString file = QFileDialog::getSaveFileName(this, "Select a file to receive");
+    QString file = QFileDialog::getExistingDirectory(this, "Select a directory to receive");
     ui->lineEdit_Recv->setText(file);
 }
 
@@ -50,16 +50,11 @@ void MainWindow::on_pushButton_Start_clicked()
     ui->toolButton_recv->setDisabled(true);
 
     QString sendFilePath = send;
-    QFileInfo sendFileInfo(sendFilePath);
-    QString sendFileName = sendFileInfo.fileName();
     QStringList fileList = {sendFilePath};
     QString recvFilePath = recv;
-    QFileInfo recvFileInfo(recvFilePath);
-    QString recvFileName = recvFileInfo.fileName();
-    QString recvFileDir = recvFileInfo.dir().absolutePath();
 
     QYmodemFile *s = new QYmodemFile(fileList,this);
-    QYmodemFile *r = new QYmodemFile(recvFileDir,this);
+    QYmodemFile *r = new QYmodemFile(recvFilePath,this);
     connect(s,&QYmodemFile::send,r,&QYmodemFile::receive);
     connect(r,&QYmodemFile::send,s,&QYmodemFile::receive);
     connect(s,&QYmodemFile::finished,this,[=]{
