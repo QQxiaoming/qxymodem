@@ -31,7 +31,7 @@ long QXmodem::xmodemReceive(void)
 	unsigned char seqnum = 1;		/* xmodem sequence number starts at 1    */
 	unsigned short pktsize = 128;	/* default packet size is 128 bytes      */
 	unsigned char response = 'C';	/* solicit a connection with CRC enabled */
-	char retry = XMODEM_RETRY_LIMIT;
+    char retry = m_retry_limit;
 	unsigned char crcflag = 0;
 	unsigned long totalbytes = 0;
 	int i;
@@ -41,7 +41,7 @@ long QXmodem::xmodemReceive(void)
 		/* solicit a connection/packet */
 		xmodemOut(response);
 		/* wait for start of packet */
-		if( (xmodemInTime(&c, XMODEM_TIMEOUT_DELAY)) >= 0) {
+        if( (xmodemInTime(&c, m_timeout)) >= 0) {
 			switch(c) {
 				case SOH: {
 					pktsize = 128;
@@ -60,7 +60,7 @@ long QXmodem::xmodemReceive(void)
 					return totalbytes;
 				}
 				case CAN: {
-					if((xmodemInTime(&c, XMODEM_TIMEOUT_DELAY)) == CAN) {
+                    if((xmodemInTime(&c, m_timeout)) == CAN) {
 						xmodemInFlush();
 						xmodemOut(ACK);
 						/* transaction cancelled by remote node */
@@ -86,7 +86,7 @@ long QXmodem::xmodemReceive(void)
 		xmbuf[0] = c;
 		/* try to get rest of packet */
 		for(i=0; i<(pktsize+crcflag+4-1); i++) {
-			if((xmodemInTime(&c,XMODEM_TIMEOUT_DELAY)) >= 0) {
+            if((xmodemInTime(&c,m_timeout)) >= 0) {
 				xmbuf[1+i] = c;
 			} else {
 				/* timed out, try again */
@@ -114,7 +114,7 @@ long QXmodem::xmodemReceive(void)
 				/* next sequence number */
 				seqnum++;
 				/* reset retries */
-				retry = XMODEM_RETRY_LIMIT;
+                retry = m_retry_limit;
 				/* reply with ACK */
 				response = ACK;
 				continue;
@@ -157,17 +157,16 @@ long QXmodem::xmodemReceive(void)
 }
 
 
-long QXmodem::xmodemTransmit(void)
+long QXmodem::xmodemTransmit(unsigned short pktsize)
 {
 	/* still to be written */
 	unsigned char xmbuf[XMODEM_BUFFER_SIZE+6];
 	unsigned char seqnum = 1;		/* xmodem sequence number starts at 1    */
-	unsigned short pktsize = 128;	/* default packet size is 128 bytes      */
 	unsigned char crcflag = 0;
-	char retry = XMODEM_RETRY_LIMIT;
+    char retry = m_retry_limit;
 	unsigned char c;
 	while(retry > 0) {
-		if( (xmodemInTime(&c, XMODEM_TIMEOUT_DELAY)) >= 0) {
+        if( (xmodemInTime(&c, m_timeout)) >= 0) {
 			switch(c) {
 				case 'C': {
                     crcflag = 1;
@@ -201,7 +200,7 @@ long QXmodem::xmodemTransmit(void)
 	if(retry == 0) {
 		return XMODEM_ERROR_RETRYEXCEED;
 	} else {
-		retry = XMODEM_RETRY_LIMIT;
+        retry = m_retry_limit;
 	}
 
 	while (retry > 0)
@@ -211,9 +210,9 @@ long QXmodem::xmodemTransmit(void)
         int read_size = readfile((char*)xmbuf,pktsize);
 		if(read_size == 0) {
 			xmodemOut(EOT);
-			retry = XMODEM_RETRY_LIMIT;
+            retry = m_retry_limit;
 			while (retry > 0) {
-				if( (xmodemInTime(&c, XMODEM_TIMEOUT_DELAY)) >= 0) {
+                if( (xmodemInTime(&c, m_timeout)) >= 0) {
 					switch(c) {
 						case ACK: {
 							return 0;
@@ -257,7 +256,7 @@ long QXmodem::xmodemTransmit(void)
 			xmodemOut((unsigned char)(crc&0xFF));
 		}
 		seqnum = (seqnum + 1) % 0x100;
-		if( (xmodemInTime(&c, XMODEM_TIMEOUT_DELAY)) >= 0) {
+        if( (xmodemInTime(&c, m_timeout)) >= 0) {
 			switch(c) {
 				case ACK: {
 					break;
@@ -324,7 +323,7 @@ retry:
 		timerPause(1);
 
 	if(ret <= 0) {
-		if(XMODEM_BLOCK) {
+        if(m_no_timeout) {
 			timeout = 0xffff;
 			goto retry;
 		} else {
