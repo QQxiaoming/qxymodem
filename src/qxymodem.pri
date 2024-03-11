@@ -2,8 +2,8 @@ INCLUDEPATH += \
         -I $$PWD 
 
 SOURCES += \
-    $$PWD/qxmodem.cpp
+    $$PWD/qxymodem.cpp
 
 HEADERS += \
-    $$PWD/qxmodem.h
+    $$PWD/qxymodem.h
     

@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 
-#include "qxmodem.h"
+#include "qxymodem.h"
 
 namespace Ui {
 class MainWindow;

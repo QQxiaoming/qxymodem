@@ -9,7 +9,7 @@ CONFIG += c++17
 DEFINES += QT_DEPRECATED_WARNINGS
 QMAKE_CXXFLAGS += -Wno-deprecated-copy
 
-include(../src/qxmodem.pri)
+include(../../src/qxymodem.pri)
 
 SOURCES += \
     main.cpp \

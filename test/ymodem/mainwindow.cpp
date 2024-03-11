@@ -2,7 +2,7 @@
 #include <QMessageBox>
 #include <QFileInfo>
 
-#include "qxmodem.h"
+#include "qxymodem.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
@@ -52,23 +52,24 @@ void MainWindow::on_pushButton_Start_clicked()
     QString sendFilePath = send;
     QFileInfo sendFileInfo(sendFilePath);
     QString sendFileName = sendFileInfo.fileName();
+    QStringList fileList = {sendFilePath};
     QString recvFilePath = recv;
     QFileInfo recvFileInfo(recvFilePath);
     QString recvFileName = recvFileInfo.fileName();
     QString recvFileDir = recvFileInfo.dir().absolutePath();
 
-    QXmodemFile *s = new QXmodemFile(sendFilePath,this);
-    QXmodemFile *r = new QXmodemFile(recvFilePath,this);
-    connect(s,&QXmodemFile::send,r,&QXmodemFile::receive);
-    connect(r,&QXmodemFile::send,s,&QXmodemFile::receive);
-    connect(s,&QXmodemFile::finished,this,[=]{
+    QYmodemFile *s = new QYmodemFile(fileList,this);
+    QYmodemFile *r = new QYmodemFile(recvFileDir,this);
+    connect(s,&QYmodemFile::send,r,&QYmodemFile::receive);
+    connect(r,&QYmodemFile::send,s,&QYmodemFile::receive);
+    connect(s,&QYmodemFile::finished,this,[=]{
         ui->lineEdit_Send->setDisabled(false);
         ui->lineEdit_Recv->setDisabled(false);
         ui->toolButton_Send->setDisabled(false);
         ui->toolButton_recv->setDisabled(false);
         s->deleteLater();
     });
-    connect(r,&QXmodemFile::finished,this,[=]{
+    connect(r,&QYmodemFile::finished,this,[=]{
         ui->lineEdit_Send->setDisabled(false);
         ui->lineEdit_Recv->setDisabled(false);
         ui->toolButton_Send->setDisabled(false);
